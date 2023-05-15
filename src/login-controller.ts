@@ -10,7 +10,7 @@ import {
 @Controller("loginregister")
 export class LoginController {
   @ToUpperCase
-  name: any = "amit";
+  name: any = "theinfotech";
   constructor() {}
 
   @MyCache("loginmethod")
