@@ -20,7 +20,10 @@ function resolveRoutes(url) {
         (prop) => typeof loginObj[prop] === "function" && prop != "constructor"
       );
 
-      const method = methods.filter((m) => m == segments[1]);
+      const method = methods.filter((m) => {
+        const routes = Reflect.getMetadata("route", className.prototype, m);
+        return routes == segments[1];
+      });
       //console.log(method[0]);
 
       const classMethod = method[0];
