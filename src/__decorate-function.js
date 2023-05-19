@@ -23,12 +23,24 @@ var __decorate =
     } else {
       for (var i = decorators.length - 1; i >= 0; i--) {
         if ((decorator = decorators[i])) {
-          propertyDescriptor =
-            (argumentLength < 3
-              ? decorator(propertyDescriptor)
-              : argumentLength > 3
-              ? decorator(target, key, propertyDescriptor)
-              : decorator(target, key)) || propertyDescriptor;
+          /**original code */
+          // propertyDescriptor =
+          //   (argumentLength < 3
+          //     ? decorator(propertyDescriptor)
+          //     : argumentLength > 3
+          //     ? decorator(target, key, propertyDescriptor)
+          //     : decorator(target, key)) || propertyDescriptor;
+          let updatedDescriptor;
+          if (argumentLength < 3) {
+            updatedDescriptor = decorator(propertyDescriptor);
+          } else if (argumentLength > 3) {
+            updatedDescriptor = decorator(target, key, propertyDescriptor);
+          } else {
+            updatedDescriptor = decorator(target, key);
+          }
+
+          console.log("updatedDescriptor - ", updatedDescriptor);
+          propertyDescriptor = updatedDescriptor || propertyDescriptor;
         }
       }
     }
@@ -58,11 +70,28 @@ var __param =
 
 function log() {
   return function (target, propertyKey, descriptor) {
+    console.log("--log decorator called--");
     const originalMethod = descriptor.value;
     descriptor.value = function (...args) {
-      console.log(`Calling method ${propertyKey} with arguments: ${args}`);
+      console.log(`log substitute function called of greet`);
       const result = originalMethod.apply(this, args);
       console.log(`Method ${propertyKey} returned: ${result}`);
+      return result;
+    };
+    return descriptor;
+  };
+}
+let cacheObj = new Map();
+function MyCache(key) {
+  return function (target, propertyKey, descriptor) {
+    console.log("--MyCache decorator called--");
+    const originalMethod = descriptor.value;
+    descriptor.value = function (...args) {
+      console.log(`MyCache substitute function called of greet`);
+      const cache = cacheObj.get(key);
+      if (cache) return cache;
+      const result = originalMethod.apply(this, args);
+      cacheObj.set(key, result);
       return result;
     };
     return descriptor;
@@ -88,7 +117,6 @@ function uppercase(target, propertyKey) {
     configurable: true,
   });
 }
-
 function addPrefix(prefix) {
   return function (target) {
     return class extends target {
@@ -99,16 +127,14 @@ function addPrefix(prefix) {
     };
   };
 }
-
-class MyClass {
+let MyClass = class MyClass {
   constructor() {
     this.message = "Hello, World!";
   }
   greet(name, parm2 = []) {
     return `Hello, ${name}!`;
   }
-}
-
+};
 __decorate(
   [uppercase, __metadata("design:type", String)],
   MyClass.prototype,
@@ -117,6 +143,7 @@ __decorate(
 );
 __decorate(
   [
+    MyCache("log-method"),
     log(),
     __param(0, logParameter),
     __metadata("design:type", Function),
@@ -128,7 +155,6 @@ __decorate(
   null
 );
 MyClass = __decorate([addPrefix("LOG")], MyClass);
-
 const instance = new MyClass();
 instance.greet("John");
 
@@ -136,33 +162,64 @@ instance.greet("John");
 
 
 
-function log(){
-return function(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-  const originalMethod = descriptor.value;
-  
-  descriptor.value = function (...args: any[]) {
-    console.log(`Calling method ${propertyKey} with arguments: ${args}`);
-    const result = originalMethod.apply(this, args);
-    console.log(`Method ${propertyKey} returned: ${result}`);
-    return result;
-  }
-  
-  return descriptor;
+function log() {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
+    console.log('--log decorator called--');
+    const originalMethod = descriptor.value;
+
+    descriptor.value = function (...args: any[]) {
+      console.log(`log substitute function called of greet`);
+      const result = originalMethod.apply(this, args);
+      console.log(`Method ${propertyKey} returned: ${result}`);
+      return result;
+    };
+
+    return descriptor;
+  };
 }
+
+let cacheObj = new Map();
+function MyCache(key:string) {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
+    console.log('--MyCache decorator called--');
+    const originalMethod = descriptor.value;
+
+    descriptor.value = function (...args: any[]) {
+        console.log(`MyCache substitute function called of greet`);
+        const cache = cacheObj.get(key);
+        if(cache) return cache;
+
+        const result = originalMethod.apply(this, args);
+        cacheObj.set(key, result);
+        return result;
+    };
+
+    return descriptor;
+  };
 }
 
 function logParameter(target: any, methodName: string, parameterIndex: number) {
-  console.log(`LogParameter - Target: ${target}, Method Name: ${methodName}, Parameter Index: ${parameterIndex}`);
+  console.log(
+    `LogParameter - Target: ${target}, Method Name: ${methodName}, Parameter Index: ${parameterIndex}`
+  );
 }
 
 function uppercase(target: any, propertyKey: string) {
   let value: string = target[propertyKey];
-  
-  const getter = function() {
+
+  const getter = function () {
     return value;
   };
 
-  const setter = function(newVal: string) {
+  const setter = function (newVal: string) {
     value = newVal.toUpperCase();
   };
 
@@ -175,7 +232,7 @@ function uppercase(target: any, propertyKey: string) {
 }
 
 function addPrefix(prefix: string) {
-  return function<T extends { new (...args: any[]): {} }>(target: T): T {
+  return function <T extends { new (...args: any[]): {} }>(target: T): T {
     return class extends target {
       constructor(...args: any[]) {
         super(...args);
@@ -185,19 +242,19 @@ function addPrefix(prefix: string) {
   };
 }
 
-@addPrefix('LOG')
+@addPrefix("LOG")
 class MyClass {
-
   @uppercase
   message: string = "Hello, World!";
 
-  @log()  
-  greet(@logParameter name: string, parm2:number[]=[]) {
+  @MyCache('log-method')
+  @log()
+  greet(@logParameter name: string, parm2: number[] = []) {
     return `Hello, ${name}!`;
   }
 }
 
 const instance = new MyClass();
-instance.greet('John');
+instance.greet("John");
 
 **/
