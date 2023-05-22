@@ -24,7 +24,7 @@ export class LoginController {
     @TransformToUpperCase("test") message: string,
     @TransformToUpperCase("demo") message1: string
   ) {
-    //this.name = 234234;
+    this.name = 234234;
     return `register method (param - ${message}) - ${message1}`;
   }
 }

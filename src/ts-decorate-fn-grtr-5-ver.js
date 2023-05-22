@@ -35,16 +35,27 @@ var __esDecorate =
     }
     var kind = contextIn.kind,
       key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-    var target =
-      !descriptorIn && ctor
-        ? contextIn["static"]
-          ? ctor
-          : ctor.prototype
-        : null;
+    //original
+    // var target =
+    //   !descriptorIn && ctor
+    //     ? contextIn["static"]
+    //       ? ctor
+    //       : ctor.prototype
+    //     : null;
+    if (!descriptorIn && ctor) {
+      if (contextIn["static"]) {
+        target = ctor;
+      } else {
+        target = ctor.prototype;
+      }
+    } else {
+      target = null;
+    }
 
     //target is a ctor.prototype
     console.log("---target---", target);
 
+    //original descriptor
     var descriptor =
       descriptorIn ||
       (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
@@ -53,7 +64,6 @@ var __esDecorate =
     var _,
       done = false;
     for (var i = decorators.length - 1; i >= 0; i--) {
-
       /**below code is doing because not to do object cloning */
       var context = {};
       for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
@@ -89,6 +99,9 @@ var __esDecorate =
     done = true;
   };
 function loggedMethod(originalMethod, _context) {
+  console.log("inside function decorator -----------");
+  console.log(loggedMethod);
+  console.log(_context);
   function replacementMethod(...args) {
     console.log("LOG: Entering method.");
     const result = originalMethod.call(this, ...args);
@@ -103,6 +116,12 @@ let Person = (() => {
   return class Person {
     static {
       _greet_decorators = [loggedMethod];
+      // ctor,
+      // descriptorIn,
+      // decorators,
+      // contextIn,
+      // initializers,
+      // extraInitializers
       __esDecorate(
         this,
         null,
